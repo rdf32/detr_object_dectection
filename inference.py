@@ -2,6 +2,12 @@ import tensorflow as tf
 import numpy as np
 import cv2
 
+
+## Thoughts
+## should be calculating the gradients for loss specific areas, and then updating the gradients with respect to specific model weights instead of just 
+# clumping them all together
+
+
 # VISUALIZATIONS
 
 def xcycwh_to_xy_min_xy_max(bbox: tf.Tensor) -> tf.Tensor:
@@ -79,34 +85,6 @@ plt.subplot(121)
 plt.imshow(img_for_plot)
 plt.title('Image')
 
-
-
-def post_process(m_outputs: dict, background_class, bbox_format="xy_center"):
-
-    predicted_bbox = m_outputs["pred_boxes"][0]
-    predicted_labels = m_outputs["pred_logits"][0]
-
-    softmax = tf.nn.softmax(predicted_labels)
-    predicted_scores = tf.reduce_max(softmax, axis=-1)
-    predicted_labels = tf.argmax(softmax, axis=-1)
-
-
-    indices = tf.where(predicted_labels != background_class)
-    indices = tf.squeeze(indices, axis=-1)
-
-    predicted_scores = tf.gather(predicted_scores, indices)
-    predicted_labels = tf.gather(predicted_labels, indices)
-    predicted_bbox = tf.gather(predicted_bbox, indices)
-
-
-    if bbox_format == "xy_center":
-        predicted_bbox = predicted_bbox
-    elif bbox_format == "xyxy":
-        predicted_bbox = xcycwh_to_xy_min_xy_max(predicted_bbox)
-    else:
-        raise NotImplementedError()
-
-    return predicted_bbox, predicted_labels, predicted_scores
 
 def process(m_outputs: dict, background_class, bbox_format="xy_center"):
 
